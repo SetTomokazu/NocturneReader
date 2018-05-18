@@ -1,0 +1,25 @@
+/**/
+
+dl.searchResultItem {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+dt.titleItem {
+  margin-top: 0px;
+  margin-bottom: 0px;
+  font-size: 120%;
+  font-weight: bold;
+}
+
+dt.wnameItem {
+  margin-top: 0px;
+  margin-bottom: 0px;
+  font-weight: normal;
+}
+
+dt.storyItem {
+  margin-top: 0px;
+  margin-bottom: 0px;
+  font-weight: bold;
+}

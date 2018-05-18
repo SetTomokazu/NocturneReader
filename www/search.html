@@ -1,0 +1,72 @@
+<ons-page>
+  <ons-toolbar>
+    <div class="left">
+      <ons-toolbar-button onclick="fn.open()">
+        <ons-icon icon="ion-navicon, material:md-menu"></ons-icon>
+      </ons-toolbar-button>
+    </div>
+    <div class="center">
+      Search
+    </div>
+  </ons-toolbar>
+  <br/>
+  <div style="text-align: center;">
+    <p>
+      <ons-input id="word" placeholder="検索" float/>
+    </p>
+    <br/>
+    <p>
+      <ons-input id="notword" placeholder="除外" float/>
+    </p>
+  </div>
+  <div style="width: 50%; float:left;">
+    <label class="left"><ons-checkbox input-id="title" value="1"/></label>
+    <label for="title" class="center">作品名</label>
+    <br />
+    <label class="left"><ons-checkbox input-id="ex" value="1"/></label>
+    <label for="ex" class="center">あらすじ</label>
+  </div>
+  <div style="width: 50%; float:right;">
+    <label class="left"><ons-checkbox input-id="keyword" value="1"/></label>
+    <label for="keyword" class="center">キーワード</label>
+    <br/>
+    <label class="left"><ons-checkbox input-id="wname" value="1"/></label>
+    <label for="wname" class="center">作者名</label>
+  </div>
+  <br/>
+  
+  <div style="text-align: center;">
+    <ons-select id="order">
+      <option value="new">新着順</option>
+      <option value="favnovelcnt">ブックマーク登録の多い順</option>
+      <option value="reviewcnt">レビューの多い順</option>
+      <option value="hyoka">総合評価の高い順</option>
+      <option value="hyokacnt">評価者数の多い順</option>
+      <option value="lengthdesc">文字数の多い順</option>
+      <option value="lengthasc">文字数の少ない順</option>
+      <option value="ncodedesc">Nコードが新しい順</option>
+      <option value="old">古い順</option>
+    </ons-select>
+    <br/>
+    <label for="type" class="center">種別</label>
+    <ons-select id="type">
+      <option value="">すべて</option>
+      <option value="t">短編のみ</option>
+      <option value="ter">完結済のみ(短編小説含む)</option>
+      <option value="r">連載中小説のみ</option>
+      <option value="re">すべての連載小説</option>
+      <option value="er">完結済連載小説のみ</option>
+    </ons-select>
+  </div>
+  <br/>
+  <label class="left"><ons-checkbox input-id="stop"/></label>
+  <label for="stop" class="center">長期連載停止中を除外する</label>
+  <p style="margin-top: 30px; text-align: center;">
+    <ons-button onclick="search()">検索</ons-button>
+  </p>
+  <ons-modal id="modal">
+    <ons-icon icon="spinner" spin="true" size="50px"></ons-icon>
+  </ons-modal>
+  <ons-list id="result_list">
+  </ons-list>
+</ons-page>

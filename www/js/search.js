@@ -25,13 +25,18 @@ function openUrl(url) {
       addEventListener('loadstop', urlLoadStopCallback);
     }
   } else {
-    requestUrl.push(url);
+    if(url != ''){
+      requestUrl.push(url);
+    }
     if(isLoading){
+      console.log("queue " + url);
       //まだ何もしない
     } else {
-      loadingUrl = requestUrl.shift();
-      isLoading = true;
-      browser.executeScript( {code: '(function(){window.location.href = "' + loadingUrl + '";})()'}, function(){});
+      if(requestUrl.length > 0){
+        loadingUrl = requestUrl.shift();
+        isLoading = true;
+        browser.executeScript( {code: '(function(){window.location.href = "' + loadingUrl + '";})()'}, function(){});
+      }
     }
   }
 }
@@ -42,18 +47,15 @@ function urlLoadStopCallback(event) {
     isLoading = false;
   } else {
     if(event.url === loadingUrl) {
-      if(requestUrl.length !== 0){
+      if(requestUrl.length > 0){
         loadingUrl = requestUrl.shift();
-        isLoading = false;
-        openUrl(loadingUrl);
+        browser.executeScript( {code: '(function(){window.location.href = "' + loadingUrl + '";})()'}, function(){});
       } else {
         loadingUrl = '';
         isLoading = false;
       }
     } else {
-      isLoading = false;
-      console.log("open " + loadingUrl);
-      openUrl(loadingUrl);
+      browser.executeScript( {code: '(function(){window.location.href = "' + loadingUrl + '";})()'}, function(){});
     }
   }
 }
@@ -71,21 +73,26 @@ function loadStopCallback(event) {
   } else if(event.url.indexOf(noc.urlBook) !== -1) {
     var suburl = event.url.replace(noc.urlBook, '');
     var count = suburl.split('/').length - 1;
-    console.log(suburl +" : " + count);
-    if(count === 1) {
+    if(count == 1) {
       browser.executeScript({
         code: getBookDetailCode
       }, function(data){
-        console.log(JSON.stringify(data));
+        //console.log(JSON.stringify(data));
         for(var i in data[0].list) {
           openUrl(noc.urlBook + data[0].list[i].url);
         }
       });
-    } else if(count === 2) {
+    } else if(count == 2) {
       browser.executeScript({
         code: getStoryDetailCode
       }, function(data){
-        console.log(JSON.stringify(data));
+        //console.log(data[0].ncode);
+        //console.log(data[0].chapter);
+        createNovelTable(data[0]);
+        //console.log(data[0].subtitle);
+        //console.log(data[0].date);
+        //console.log(data[0].html);
+        //console.log(JSON.stringify(data));
       });
     } else {
       //ありえないはず
@@ -162,9 +169,19 @@ var getBookDetailCode = `
 var getStoryDetailCode = `
   (function(){
     var result = {};
-    //result.html = $('body').html();
+    var suburl = location.href.replace("https://novel18.syosetu.com/", "");
+    result.html = $('body').html();
+    result.ncode = suburl.split('/')[0];
+    result.chapter = suburl.split('/')[1];
     result.subtitle = $('.novel_subtitle').text();
-    result.headerComment = $('#novel_p').text();
+    result.header = $('#novel_p').text();
+    var datetext = $('span.kaikou').text().trim();
+    result.hasChanged = (datetext.indexOf("改稿") !==-1);
+    if(result.hasChanged) {
+      datetext = datetext.split('（')[1].split(' ')[0];
+    }
+    var d = new Date(datetext.trim());
+    result.date = d.getFullYear() + "年" + (d.getMonth() + 1) + "月" + d.getDate() + "日";
     result.body = $('#novel_honbun').text();
     return result;
   })();

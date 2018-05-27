@@ -3,6 +3,7 @@ document.addEventListener('deviceready', function() {
   openUrl(noc.urlTop);
 });
 
+
 var noc = {
   urlEnter: 'https://noc.syosetu.com/',
   urlTop: 'https://noc.syosetu.com/top/top/',
@@ -71,28 +72,26 @@ function loadStopCallback(event) {
       code: getSearchResultsCode
     }, showSearchResults);
   } else if(event.url.indexOf(noc.urlBook) !== -1) {
+    console.log('bookurl');
     var suburl = event.url.replace(noc.urlBook, '');
     var count = suburl.split('/').length - 1;
     if(count == 1) {
       browser.executeScript({
         code: getBookDetailCode
       }, function(data){
-        //console.log(JSON.stringify(data));
+        addBook(data[0]);
         for(var i in data[0].list) {
-          openUrl(noc.urlBook + data[0].list[i].url);
+          if(data[0].list[i].isChapterTitle == false){
+            openUrl(noc.urlBook + data[0].list[i].url);
+          }
         }
       });
     } else if(count == 2) {
+      console.log('loading chapters');
       browser.executeScript({
         code: getStoryDetailCode
       }, function(data){
-        //console.log(data[0].ncode);
-        //console.log(data[0].chapter);
         createNovelTable(data[0]);
-        //console.log(data[0].subtitle);
-        //console.log(data[0].date);
-        //console.log(data[0].html);
-        //console.log(JSON.stringify(data));
       });
     } else {
       //ありえないはず
@@ -144,22 +143,30 @@ var getSearchResultsCode = `
 var getBookDetailCode = `
   (function(){
     var result = {};
-    result.html = $('body').html();
-    result.title = $('.novel_title').text();
-    result.wname = $('.novel_writername').text().split('：')[1].trim();
-    result.ex = $('.novel_ex').text();
+    //result.html = $('body').html();
+    var suburl = location.href.replace("https://novel18.syosetu.com/", "");
+    result.ncode = suburl.split('/')[0];
+    result.title = $('div.novel_title').text();
+    result.wname = $('div.novel_writername').text().split('：')[1].trim();
+    result.ex = $('div.novel_ex').text();
     result.list = [];
     $('.novel_sublist li').each(function(i,elm){
       var detail = {};
-      detail.subtitle = $(elm).find('a').text();
-      detail.url = $(elm).find('a').attr('href').substr(1);
-      var datetext = $(elm).find('span.kaikou').text().trim();
-      detail.hasChange = (datetext.indexOf("改稿") !==-1);
-      if(detail.hasChange) {
-        datetext = datetext.split('（')[1].split(' ')[0];
+      if( $(elm).hasClass('chapter') ){
+        detail.isChapterTitle = true;
+        detail.subtitle = $(elm).text();
+      }else{
+        detail.isChapterTitle = false;
+        detail.subtitle = $(elm).find('a').text();
+        detail.url = $(elm).find('a').attr('href').substr(1);
+        var datetext = $(elm).find('span.kaikou').text().trim();
+        detail.hasChange = (datetext.indexOf("改稿") !==-1);
+        if(detail.hasChange) {
+          datetext = datetext.split('（')[1].split(' ')[0];
+        }
+        var d = new Date(datetext.trim());
+        detail.date = d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日';
       }
-      var d = new Date(datetext.trim());
-      detail.date = d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日';
       result.list.push(detail);
     });
     return result;

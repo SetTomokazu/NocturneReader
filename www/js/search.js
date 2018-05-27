@@ -43,7 +43,7 @@ function openUrl(url) {
 }
 
 function urlLoadStopCallback(event) {
-  console.log( 'request\t:' + loadingUrl + '\ncurrent\t:' + event.url);
+  //console.log( 'request\t:' + loadingUrl + '\ncurrent\t:' + event.url);
   if(loadingUrl === '') {
     isLoading = false;
   } else {
@@ -60,7 +60,6 @@ function urlLoadStopCallback(event) {
     }
   }
 }
-
 
 function loadStopCallback(event) {
   if(event.url === noc.urlEnter) {
@@ -82,6 +81,7 @@ function loadStopCallback(event) {
         addBook(data[0]);
         for(var i in data[0].list) {
           if(data[0].list[i].isChapterTitle == false){
+            console.log(data[0].list[i].subtitle);
             openUrl(noc.urlBook + data[0].list[i].url);
           }
         }
@@ -91,7 +91,9 @@ function loadStopCallback(event) {
       browser.executeScript({
         code: getStoryDetailCode
       }, function(data){
-        createNovelTable(data[0]);
+        console.log(data[0].subtitle);
+        //console.log(data[0].html);
+        updateChapter(data[0]);
       });
     } else {
       //ありえないはず
@@ -180,16 +182,10 @@ var getStoryDetailCode = `
     result.html = $('body').html();
     result.ncode = suburl.split('/')[0];
     result.chapter = suburl.split('/')[1];
-    result.subtitle = $('.novel_subtitle').text();
-    result.header = $('#novel_p').text();
+    result.subtitle = $('.novel_subtitle').text().trim();
+    result.header = $('#novel_p').text().trim();
     var datetext = $('span.kaikou').text().trim();
-    result.hasChanged = (datetext.indexOf("改稿") !==-1);
-    if(result.hasChanged) {
-      datetext = datetext.split('（')[1].split(' ')[0];
-    }
-    var d = new Date(datetext.trim());
-    result.date = d.getFullYear() + "年" + (d.getMonth() + 1) + "月" + d.getDate() + "日";
-    result.body = $('#novel_honbun').text();
+    result.body = $('#novel_honbun').text().trim();
     return result;
   })();
   `;

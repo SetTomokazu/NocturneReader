@@ -1,5 +1,6 @@
 {
-    "name": "monaca-template-onsenui-v2-js-splitter",
+    "name": "nocturn-reader",
+    "description": "読みやすいのが欲しい",
     "dependencies": {
         "cordova-custom-config": "5.1.0",
         "cordova-plugin-splashscreen": "5.0.2",

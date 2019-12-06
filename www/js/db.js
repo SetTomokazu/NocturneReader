@@ -5,9 +5,6 @@ var sql = {
   MainTableDefine: 'MainTable (id unique, ncode, title, wname, ex)',
 };
 
-document.addEventListener('deviceready', function () {
-  initDB();
-});
 
 function openDB() {
   return window.openDatabase("Database", "1.0", "Database", 200000);
@@ -51,19 +48,13 @@ function successCB() {
   db.transaction(queryDB, errorHandler);
 }
 
-function updateChapter(chapter) {
+function updatePage(page) {
   var db = openDB();
   db.transaction(
     function (tx) {
-      //tx.executeSql('DROP TABLE IF EXISTS ' + chapter.ncode + 'Table');
-      //tx.executeSql('CREATE TABLE IF NOT EXISTS ' + chapter.ncode + 'Table (id unique, seek, isdone, date, hasChanged, subtitle, header, body)');
-      tx.executeSql('UPDATE ' + chapter.ncode + 'Table  SET seek = 0, isdone = 0, subtitle = ?, header=?, body=? where id=?',
-        [chapter.subtitle, chapter.header, chapter.body, chapter.chapter],
-        function (tx) {
-          //tx.executeSql('SELECT * FROM ' + chapter.ncode + 'Table', [],
-          //  function (tx, results) { },
-          //  errorHandler);
-        },
+      tx.executeSql('UPDATE ' + page.ncode + 'Table  SET seek = 0, isdone = 0,  subtitle = ?, header=?, body=? where id=?',
+        [page.subtitle, page.header, page.body, page.index],
+        function (tx) { },
         errorHandler
       );
     }
@@ -82,14 +73,12 @@ function addBook(book) {
         errorHandler
       );
       tx.executeSql('DROP TABLE IF EXISTS ' + book.ncode + 'Table');
-      tx.executeSql('CREATE TABLE IF NOT EXISTS ' + book.ncode + 'Table (id unique, seek, isdone, date, hasChanged, subtitle, header, body)');
+      tx.executeSql('CREATE TABLE IF NOT EXISTS ' + book.ncode + 'Table (id unique, seek, isdone, date, hasChanged, chapter, subtitle, header, body)');
       for (var i in book.list) {
-        if (book.list[i].isChapterTitle == false) {
-          tx.executeSql(
-            'INSERT INTO ' + book.ncode + 'Table (id, date, hasChanged, subtitle) VALUES (?, ?, ?, ?)',
-            [book.list[i].url.split('/')[1], book.list[i].date, book.list[i].hasChanged, book.list[i].subtitle]
-          );
-        }
+        tx.executeSql(
+          'INSERT INTO ' + book.ncode + 'Table (id, date, hasChanged, chapter, subtitle) VALUES (?, ?, ?, ?, ?)',
+          [book.list[i].url.split('/')[1], book.list[i].date, book.list[i].hasChanged, book.list[i].chapter, book.list[i].subtitle]
+        );
       }
     },
     errorHandler,
@@ -98,13 +87,14 @@ function addBook(book) {
 }
 
 function getBooks() {
+  $('#book_list').html("");
   console.log('Lets get books');
   var db = openDB();
   db.transaction(
     function (tx) {
       tx.executeSql('SELECT * FROM MainTable', [],
         function (tx, results) {
-          console.log('select success');
+          //console.log('select success');
           var len = results.rows.length;
           for (var i = 0; i < len; i++) {
             var item =
@@ -122,16 +112,16 @@ function getBooks() {
 }
 
 function getChapters(ncode) {
+  $('#chapter_list').html("");
   var db = openDB();
   db.transaction(
     function (tx) {
       tx.executeSql('SELECT * FROM ' + ncode + 'Table', [],
         function (tx, results) {
-          console.log('select success');
           var len = results.rows.length;
           for (var i = 0; i < len; i++) {
             var item =
-              '<ons-list-item tappable modifier="longdivider">' +
+              '<ons-list-item tappable modifier="longdivider" onclick="open2read(' + "'" + ncode + "'," + results.rows.item(i).id + ')">' +
               '<dl class="searchResultItem">' +
               '<dt class="titleItem">' + results.rows.item(i).subtitle + '</dt>' +
               '<dt class="wnameItem">更新日:' + results.rows.item(i).date + '</dt>' +
@@ -139,6 +129,23 @@ function getChapters(ncode) {
               '</ons-list-item>';
             $('#chapter_list').append(item);
           }
+        },
+        errorHandler);
+    });
+}
+
+function getText(ncode, id) {
+  $('#text').html("");
+  var db = openDB();
+  db.transaction(
+    function (tx) {
+      console.log(ncode + " : " + id);
+      tx.executeSql('SELECT * FROM ' + ncode + 'Table where id==' + id, [],
+        function (tx, results) {
+          var data = results.rows.item(0);
+          console.log(data.id + ":" + data.subtitle);
+          console.log('select success');
+          $('#text').html(data.body);
         },
         errorHandler);
     });

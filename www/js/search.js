@@ -1,8 +1,3 @@
-// 起動時の処理
-document.addEventListener('deviceready', function() {
-  openUrl(noc.urlTop);
-});
-
 
 var noc = {
   urlEnter: 'https://noc.syosetu.com/',
@@ -44,6 +39,7 @@ function openUrl(url) {
 
 function urlLoadStopCallback(event) {
   //console.log( 'request\t:' + loadingUrl + '\ncurrent\t:' + event.url);
+  console.log( 'current\t:' + event.url);
   if(loadingUrl === '') {
     isLoading = false;
   } else {
@@ -71,7 +67,6 @@ function loadStopCallback(event) {
       code: getSearchResultsCode
     }, showSearchResults);
   } else if(event.url.indexOf(noc.urlBook) !== -1) {
-    console.log('bookurl');
     var suburl = event.url.replace(noc.urlBook, '');
     var count = suburl.split('/').length - 1;
     if(count == 1) {
@@ -80,20 +75,14 @@ function loadStopCallback(event) {
       }, function(data){
         addBook(data[0]);
         for(var i in data[0].list) {
-          if(data[0].list[i].isChapterTitle == false){
-            console.log(data[0].list[i].subtitle);
-            openUrl(noc.urlBook + data[0].list[i].url);
-          }
+          openUrl(noc.urlBook + data[0].list[i].url);
         }
       });
     } else if(count == 2) {
-      console.log('loading chapters');
       browser.executeScript({
         code: getStoryDetailCode
       }, function(data){
-        console.log(data[0].subtitle);
-        //console.log(data[0].html);
-        updateChapter(data[0]);
+        updatePage(data[0]);
       });
     } else {
       //ありえないはず
@@ -152,24 +141,25 @@ var getBookDetailCode = `
     result.wname = $('div.novel_writername').text().split('：')[1].trim();
     result.ex = $('div.novel_ex').text();
     result.list = [];
+    var chapter = "";
     $('.novel_sublist li').each(function(i,elm){
-      var detail = {};
+      var page = {};
       if( $(elm).hasClass('chapter') ){
-        detail.isChapterTitle = true;
-        detail.subtitle = $(elm).text();
+        chapter = $(elm).text();
       }else{
-        detail.isChapterTitle = false;
-        detail.subtitle = $(elm).find('a').text();
-        detail.url = $(elm).find('a').attr('href').substr(1);
+        page.chapter = chapter;
+        page.subtitle = $(elm).find('a').text();
+        page.url = $(elm).find('a').attr('href').substr(1);
+        page.index = page.url.split('/')[1];
         var datetext = $(elm).find('span.kaikou').text().trim();
-        detail.hasChange = (datetext.indexOf("改稿") !==-1);
-        if(detail.hasChange) {
+        page.hasChange = (datetext.indexOf("改稿") !==-1);
+        if(page.hasChange) {
           datetext = datetext.split('（')[1].split(' ')[0];
         }
         var d = new Date(datetext.trim());
-        detail.date = d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日';
+        page.date = d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日';
+        result.list.push(page);
       }
-      result.list.push(detail);
     });
     return result;
   })();
@@ -181,11 +171,10 @@ var getStoryDetailCode = `
     var suburl = location.href.replace("https://novel18.syosetu.com/", "");
     result.html = $('body').html();
     result.ncode = suburl.split('/')[0];
-    result.chapter = suburl.split('/')[1];
+    result.index = suburl.split('/')[1];
     result.subtitle = $('.novel_subtitle').text().trim();
-    result.header = $('#novel_p').text().trim();
-    var datetext = $('span.kaikou').text().trim();
-    result.body = $('#novel_honbun').text().trim();
+    result.header = $('#novel_p').html().trim();
+    result.body = $('#novel_honbun').html().trim();
     return result;
   })();
   `;

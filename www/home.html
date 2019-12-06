@@ -1,3 +1,9 @@
 <ons-page id="home">
-  <ons-navigator id="mainNavigator" page="main.html"></ons-navigator>
+	<ons-navigator id="mainNavigator" page="bookshelf.html"></ons-navigator>
+	<script>
+		function enter(ncode){
+      var content = document.getElementById('mainNavigator');
+      content.pushPage('detail.html', {data: {ncode: ncode}, animation: 'slide'});
+    }
+	</script>
 </ons-page>

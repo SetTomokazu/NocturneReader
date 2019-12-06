@@ -1,12 +1,18 @@
 <ons-page id="detail">
-  <dl class="searchResultItem">
-    <dt>あらすじ</dt>
-    <dt>前回の続きから</dt>
-    <dt>自動同期</dt>
-    <dt>一括既読設定</dt>
-    <dt>最新状態にする</dt>
-    <dt>削除する</dt>
-  </dl>
+	<dl class="searchResultItem">
+		<dt>あらすじ</dt>
+		<dt>前回の続きから</dt>
+		<dt>自動同期</dt>
+		<dt>一括既読設定</dt>
+		<dt>最新状態にする</dt>
+		<dt>削除する</dt>
+	</dl>
 	<ons-list id="chapter_list">
 	</ons-list>
+	<script>
+		function open2read(ncode, id){
+      var content = document.getElementById('mainNavigator');
+      content.pushPage('page.html', {data: {ncode: ncode, id: id}, animation: 'slide'});
+    }
+	</script>
 </ons-page>
